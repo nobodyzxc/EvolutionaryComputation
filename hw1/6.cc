@@ -12,12 +12,12 @@
 
 using namespace std;
 
-template <typename BinRepr, typename Eval> class GA {
+template <typename FitType, typename BinRepr> class GA {
 public:
-  GA(ULL size, Eval eval) {
+  GA(ULL size, FitType (*eval)(BinRepr)) {
     popsize = size;
     evaluate = eval;
-    fitness = new ULL[popsize];
+    fitness = new FitType[popsize];
     selected = new BinRepr[popsize];
     population = new BinRepr[popsize];
   }
@@ -36,7 +36,8 @@ public:
   void select_parent() {
     const unsigned int k = 2;
     for (ULL i = 0; i < popsize; i++) {
-      ULL sel = 0, maxfit = 0;
+      ULL sel = 0;
+      FitType maxfit = 0;
 
       set<ULL> sample;
       while (sample.size() < k)
@@ -75,9 +76,10 @@ public:
   }
 
 private:
-  Eval evaluate;
+  FitType (*evaluate)(BinRepr);
   BinRepr *population, *selected;
-  ULL totfit, popsize, *fitness;
+  ULL popsize;
+  FitType totfit, *fitness;
 };
 
 template <ULL array_size> class fixedBoolArray {
@@ -108,22 +110,22 @@ private:
   bool *data;
 };
 
-template <typename BinExpr> ULL oneMax(BinExpr expr) {
+template <typename BinRepr> ULL oneMax(BinRepr expr) {
   ULL acc = 0;
   for (ULL i = 0; i < expr.size(); i++)
     acc += expr.at(i);
   return acc;
 }
 
-template <typename BinExpr>
-void log_king(int gidx, int gtot, int score, BinExpr expr) {
+template <typename BinRepr>
+void log_king(int gidx, int gtot, int score, BinRepr expr) {
   printf("%d%c", score, gidx == gtot - 1 ? '\n' : ',');
 }
 
 #define RepType fixedBoolArray<60>
 int main() {
   srand(time(NULL));
-  GA<RepType, ULL (*)(RepType)> ga(500, oneMax);
+  GA<ULL, RepType> ga(500, oneMax);
   int rounds = 10;
   while (rounds--)
     ga.run(200);
