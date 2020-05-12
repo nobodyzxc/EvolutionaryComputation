@@ -65,27 +65,32 @@ template <typename FitType, typename RValVec> class ES {
       for (auto idx: sort_indexes(fitness, spwansize)) {
         if(i >= popsize) break;
         population[i++].copy(competitors[idx]);
+        //printf("select %lu\n", idx);
       }
     }
 
     void recombination() {
       //double nor;
       double gnor = (*distribution)(*generator);
+      double lnor[RValVec::size()];
       for(auto i = 0llu; i < RValVec::size(); i++){
-        double lnor = (*distribution)(*generator);
-        double sig = sigmas[i] * exp(tauq * gnor + tau * lnor);
-        //if(sigmas[i] > 10)
-        //  printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigmas[i], tauq, nor, tau, nor, sig);
+        lnor[i] = (*distribution)(*generator);
+        double sig = sigmas[i] * exp(tau * gnor + tauq * lnor[i]);
+        //if(i == 0){
+        //  //printf("[%lld] sigma(%lf) * exp(%lf) = %lf\n", i, sigmas[i], exp(tauq * gnor + tau * lnor), sig);
+        //  //printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigmas[i], tauq, gnor, tau, lnor, sig);
+        //  printf("sig = %lf, t'= %lf, t = %lf, exp = %lf\n", sig, tauq, tau, exp(tauq * gnor + tau * lnor));
+        //}
 
         //sigmas[i] = min(max(sig, eps), 1.0);
-        //sigmas[i] = min(max(sig, eps), 2.0);
+        //sigmas[i] = min(max(sig, eps), 10.0);
         sigmas[i] = max(sig, eps);
       }
 
       for (ULL i = 0; i < popsize; i++) {
         for(ULL j = 0; j < childsize; j++){
           for(ULL k = 0; k < competitors[i].size(); k++){
-            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(*generator);
+            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * lnor[k];
           }
         }
       }
@@ -173,17 +178,17 @@ template <typename RVV> double NDsphere(RVV vec) {
 int main() {
   srand(time(NULL));
 
-  double n = 1000;
-  double t = 1.0 / sqrt(2 * n);
-  double tp = 1.0 / sqrt(2 * sqrt(n));
+  double n = 10;
+  double t = 1.0 / sqrt(2 * sqrt(n));
+  double tq = 1.0 / sqrt(2 * n);
   double eps = 1e-5;
 
   puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
   puts("|:--------:|:---------:|:---------:|:---------:|");
 
-  ES<double, RepType> es_cov_a(1, '+', 1, NDsphere, 0.01, t, tp, eps);
-  ES<double, RepType> es_cov_b(1, '+', 1, NDsphere, 0.1, t, tp, eps);
-  ES<double, RepType> es_cov_c(1, '+', 1, NDsphere, 1, t, tp, eps);
+  ES<double, RepType> es_cov_a(1, '+', 1, NDsphere, 0.01, t, tq, eps);
+  ES<double, RepType> es_cov_b(1, '+', 1, NDsphere, 0.1, t, tq, eps);
+  ES<double, RepType> es_cov_c(1, '+', 1, NDsphere, 1, t, tq, eps);
   for(int rounds = 0; rounds < 10; rounds++, puts("")){
     printf("| Run  #%02d |", rounds + 1), fflush(stdout);
     es_cov_a.run(1e7, 0.005), printf(" %9llu |", es_cov_a.stopGen), fflush(stdout);
