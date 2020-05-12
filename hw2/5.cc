@@ -73,24 +73,27 @@ template <typename FitType, typename RValVec> class ES {
 #ifdef rup
       double n_sigmas[RValVec::size()];
 #endif
+      //double nor;
       double nor = (*distribution)(generator);
       for(auto i = 0llu; i < RValVec::size(); i++){
+        //nor = (*distribution)(generator);
         double sig = sigmas[i] * exp(tauq * nor + tau * nor);
-        //printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigma, tauq, nor, tau, nor, sig);
+        //printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigmas[i], tauq, nor, tau, nor, sig);
 #ifdef rup
         n_sigmas[i] = max(sig, eps);
 #else
         //sigmas[i] = min(max(sig, eps), 1.0);
-        sigmas[i] = min(max(sig, eps), 3.0);
+        //sigmas[i] = min(max(sig, eps), 3.0);
+        sigmas[i] = max(sig, eps);
 #endif
       }
-#else
+#else // non uniq
 #ifdef rup
         double n_sigma;
 #endif
         double nor = (*distribution)(generator);
         double sig = sigma * exp(tauq * nor + tau * nor);
-        printf("sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", sigma, tauq, nor, tau, nor, sig);
+        //printf("sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", sigma, tauq, nor, tau, nor, sig);
 #ifdef rup
         n_sigma = min(max(sig, eps), 3.0);
 #else
@@ -202,18 +205,13 @@ template <typename RVV> double NDsphere(RVV vec) {
   return acc;
 }
 
-template <typename RVV>
-void log_king(int gidx, int gtot, int score, RVV expr) {
-  printf("%d%c", score, gidx == gtot - 1 ? '\n' : ',');
-}
-
 #define RepType fixedRealVector<10>
 int main() {
   srand(time(NULL));
 
-  double n = 1;
-  double t = 1 / sqrt(2 * n);
-  double tp = 1 / sqrt(2 * sqrt(n));
+  double n = 1000;
+  double t = 1.0 / sqrt(2 * n);
+  double tp = 1.0 / sqrt(2 * sqrt(n));
   double eps = 1e-5;
 
   puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");

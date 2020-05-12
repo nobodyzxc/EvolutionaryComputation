@@ -1,11 +1,11 @@
 
 .PRECIOUS: %.exe
+IMG_DIR   = img
 SRC_FILES = $(wildcard *.cc)
 EXE_FILES = $(SRC_FILES:%.cc=%.exe)
-CSV_FILES = $(SRC_FILES:%.cc=%.csv)
-PNG_FILE  = summary.png
+CSV_FILES = $(SRC_FILES:%.cc=$(IMG_DIR)/%.csv)
+PNG_FILE  = $(IMG_DIR)/summary.png
 RPT_FILE  = report.md
-IMG_DIR   = img
 
 all: $(RPT_FILE)
 
@@ -21,11 +21,11 @@ $(PNG_FILE): $(IMG_DIR) $(CSV_FILES)
 %.exe: %.cc
 	g++ -o $@ $<
 
-%.csv: %.exe
+$(IMG_DIR)/%.csv: %.exe
 	./$< > $@
 
 format:
 	clang-format -i $(SRC_FILES)
 
 clean:
-	rm -rf $(CSV_FILES) $(EXE_FILES) $(IMG_DIR) $(RPT_FILE)
+	rm -rf $(EXE_FILES) $(IMG_DIR) $(RPT_FILE)

@@ -12,7 +12,7 @@ config = {
 }
 
 for fidx in config.keys():
-    with open(str(fidx) + '.csv', 'r') as data:
+    with open(os.path.join('img', f'{fidx}.csv'), 'r') as data:
         rounds = [[int(f) for f in r.split(',')] for r in data.read().split()]
         avg = [sum(r) / len(r) for r in zip(*rounds)]
         records[fidx] = avg
