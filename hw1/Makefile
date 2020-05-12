@@ -4,8 +4,12 @@ SRC_FILES = $(wildcard *.cc)
 EXE_FILES = $(SRC_FILES:%.cc=%.exe)
 CSV_FILES = $(SRC_FILES:%.cc=%.csv)
 PNG_FILE  = summary.png
+RPT_FILE  = report.md
 
-all: $(PNG_FILE)
+all: $(RPT_FILE)
+
+$(RPT_FILE): $(PNG_FILES)
+	cp prebuilt/template.md $(RPT_FILE)
 
 $(PNG_FILE): $(CSV_FILES)
 	./plot.py

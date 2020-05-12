@@ -15,29 +15,22 @@ using namespace std;
 
 template <typename T>
 vector<size_t> sort_indexes(const T &v, size_t size) {
-
-  // initialize original index locations
   vector<size_t> idx(size);
   iota(idx.begin(), idx.end(), 0);
-
-  // sort indexes based on comparing values in v
-  // using std::stable_sort instead of std::sort
-  // to avoid unnecessary index re-orderings
-  // when v contains elements of equal values
   stable_sort(idx.begin(), idx.end(),
       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
-
   return idx;
 }
 
 template <typename FitType, typename RValVec> class ES {
   public:
     ULL stopGen;
-    ES(ULL psize, char notat, ULL csize, FitType (*eval)(RValVec), double sig) {
-      sigma = sig;
+    ES(ULL psize, char notat, ULL csize, FitType (*eval)(RValVec), double sig, double t, double tq, double ep) {
+      init_sigma = sig;
       popsize = psize;
       notation = notat;
       childsize = csize / psize;
+      tau = t, tauq = tq, eps = ep;
 
       if(notation == ',')
         spwansize = csize;
@@ -50,12 +43,14 @@ template <typename FitType, typename RValVec> class ES {
       fitness = new FitType[spwansize];
       population = new RValVec[popsize];
       competitors = new RValVec[spwansize];
+      sigmas = new double[RValVec::size()];
     }
 
     ~ES() {
       delete[] fitness;
       delete[] competitors;
       delete[] population;
+      delete[] sigmas;
     }
 
     void const_initialize(FitType x) {
@@ -72,10 +67,57 @@ template <typename FitType, typename RValVec> class ES {
     }
 
     void recombination() {
+//#define rup
+#define uniq
+#ifdef uniq
+#ifdef rup
+      double n_sigmas[RValVec::size()];
+#endif
+      double nor = (*distribution)(generator);
+      for(auto i = 0llu; i < RValVec::size(); i++){
+        double sig = sigmas[i] * exp(tauq * nor + tau * nor);
+        //printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigma, tauq, nor, tau, nor, sig);
+#ifdef rup
+        n_sigmas[i] = max(sig, eps);
+#else
+        //sigmas[i] = min(max(sig, eps), 1.0);
+        sigmas[i] = min(max(sig, eps), 3.0);
+#endif
+      }
+#else
+#ifdef rup
+        double n_sigma;
+#endif
+        double nor = (*distribution)(generator);
+        double sig = sigma * exp(tauq * nor + tau * nor);
+        printf("sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", sigma, tauq, nor, tau, nor, sig);
+#ifdef rup
+        n_sigma = min(max(sig, eps), 3.0);
+#else
+        sigma = min(max(sig, eps), 3.0);
+#endif
+#endif
+
       for (ULL i = 0; i < popsize; i++) {
         for(ULL j = 0; j < childsize; j++){
           for(ULL k = 0; k < competitors[i].size(); k++){
-            competitors[i * childsize + j].at(k) = population[i].at(k) + (*distribution)(generator);
+#ifdef uniq
+
+#ifdef rup
+            competitors[i * childsize + j].at(k) = population[i].at(k) + n_sigmas[k] * (*distribution)(generator);
+#else
+            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(generator);
+#endif//rup
+
+#else
+
+#ifdef rup
+            competitors[i * childsize + j].at(k) = population[i].at(k) + n_sigma * (*distribution)(generator);
+#else
+            competitors[i * childsize + j].at(k) = population[i].at(k) + sigma * (*distribution)(generator);
+#endif
+
+#endif
           }
         }
       }
@@ -86,10 +128,19 @@ template <typename FitType, typename RValVec> class ES {
       }
     }
 
-    void run(ULL generations, FitType diff) {
+    void init(){
       const_initialize(1);
+      sigma = init_sigma;
+      for(auto i = 0llu; i < RValVec::size(); i++)
+        sigmas[i] = init_sigma;
+    }
+
+    void run(ULL generations, FitType diff) {
+
+      init();
+
       if(distribution) delete distribution;
-      distribution = new normal_distribution<double>(0, sigma);
+      distribution = new normal_distribution<double>(0, 1);
       for (stopGen = 0; stopGen < generations; stopGen++) {
         recombination();
         for (ULL i = 0; i < spwansize; i++)
@@ -109,8 +160,9 @@ template <typename FitType, typename RValVec> class ES {
     FitType (*evaluate)(RValVec);
     RValVec *population, *competitors;
     FitType totfit, *fitness;
+    double *sigmas, sigma, init_sigma;
     ULL popsize, spwansize, childsize;
-    double sigma;
+    double tau, tauq, eps;
     char notation;
 };
 
@@ -126,7 +178,7 @@ template <ULL array_size> class fixedRealVector {
       for (ULL i = 0; i < array_size; i++)
         data[i] = x;
     }
-    ULL size() { return array_size; }
+    static ULL size() { return array_size; }
     void crossover(ULL beg, ULL end, fixedRealVector<array_size> &mate) {
       while (beg != end)
         swap(data[beg], mate.data[beg]), beg++;
@@ -158,27 +210,23 @@ void log_king(int gidx, int gtot, int score, RVV expr) {
 #define RepType fixedRealVector<10>
 int main() {
   srand(time(NULL));
+
+  double n = 1;
+  double t = 1 / sqrt(2 * n);
+  double tp = 1 / sqrt(2 * sqrt(n));
+  double eps = 1e-5;
+
   puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
   puts("|:--------:|:---------:|:---------:|:---------:|");
-  ES<double, RepType> es_cov_a(1, '+', 1, NDsphere, 0.01);
-  ES<double, RepType> es_cov_b(1, '+', 1, NDsphere, 0.1);
-  ES<double, RepType> es_cov_c(1, '+', 1, NDsphere, 1);
+
+  ES<double, RepType> es_cov_a(1, '+', 1, NDsphere, 0.01, t, tp, eps);
+  ES<double, RepType> es_cov_b(1, '+', 1, NDsphere, 0.1, t, tp, eps);
+  ES<double, RepType> es_cov_c(1, '+', 1, NDsphere, 1, t, tp, eps);
   for(int rounds = 0; rounds < 10; rounds++, puts("")){
     printf("| Run  #%02d |", rounds + 1), fflush(stdout);
     es_cov_a.run(1e7, 0.005), printf(" %9llu |", es_cov_a.stopGen), fflush(stdout);
     es_cov_b.run(1e7, 0.005), printf(" %9llu |", es_cov_b.stopGen), fflush(stdout);
     es_cov_c.run(1e7, 0.005), printf(" %9llu |", es_cov_c.stopGen), fflush(stdout);
   }
-  puts("");
-  ES<double, RepType> es_ran_a(1, ',', 1, NDsphere, 0.01);
-  ES<double, RepType> es_ran_b(1, ',', 1, NDsphere, 0.1);
-  ES<double, RepType> es_ran_c(1, ',', 1, NDsphere, 1);
-  puts("| (1,1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
-  puts("|:--------:|:---------:|:---------:|:---------:|");
-  for(int rounds = 0; rounds < 10; rounds++, puts("")){
-    printf("| Run  #%02d |", rounds + 1), fflush(stdout);
-    es_ran_a.run(1e7, 0.005), printf(" %9llu |", es_ran_a.stopGen), fflush(stdout);
-    es_ran_b.run(1e7, 0.005), printf(" %9llu |", es_ran_b.stopGen), fflush(stdout);
-    es_ran_c.run(1e7, 0.005), printf(" %9llu |", es_ran_c.stopGen), fflush(stdout);
-  }
+  return 0;
 }

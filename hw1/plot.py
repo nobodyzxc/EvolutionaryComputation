@@ -1,5 +1,4 @@
-#!/bin/python3.6
-import sys
+import sys, os
 import matplotlib.pyplot as plt
 
 # https://matplotlib.org/2.1.1/api/_as_gen/matplotlib.pyplot.plot.html
@@ -22,7 +21,7 @@ records[4] = [d - 800 for d in records[4]]
 records[7] = [d - 800 for d in records[7]]
 
 def plot(idxs, fn):
-    lines = [plt.plot(records[idx], 
+    lines = [plt.plot(records[idx],
                       config[idx]['cc'],
                       label=config[idx]['label'])
                 for idx in idxs]
@@ -33,10 +32,10 @@ def plot(idxs, fn):
     plt.savefig(fn)
     plt.close()
 
-plot([3], '3.png')
-plot([4], '4.png')
-plot([3, 4], '3n4.png')
-plot([6], '6.png')
-plot([7], '7.png')
-plot([6, 7], '6n7.png')
-plot(config.keys(), 'summary.png')
+plot([3], os.path.join('img', '3.png'))
+plot([4], os.path.join('img', '4.png'))
+plot([3, 4], os.path.join('img', '3n4.png'))
+plot([6], os.path.join('img', '6.png'))
+plot([7], os.path.join('img', '7.png'))
+plot([6, 7], os.path.join('img', '6n7.png'))
+plot(config.keys(), os.path.join('img', 'summary.png'))
