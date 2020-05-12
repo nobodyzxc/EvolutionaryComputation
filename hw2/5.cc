@@ -68,8 +68,6 @@ template <typename FitType, typename RValVec> class ES {
 
     void recombination() {
 //#define rup
-#define uniq
-#ifdef uniq
 #ifdef rup
       double n_sigmas[RValVec::size()];
 #endif
@@ -87,40 +85,16 @@ template <typename FitType, typename RValVec> class ES {
         sigmas[i] = max(sig, eps);
 #endif
       }
-#else // non uniq
-#ifdef rup
-        double n_sigma;
-#endif
-        double nor = (*distribution)(generator);
-        double sig = sigma * exp(tauq * nor + tau * nor);
-        //printf("sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", sigma, tauq, nor, tau, nor, sig);
-#ifdef rup
-        n_sigma = min(max(sig, eps), 3.0);
-#else
-        sigma = min(max(sig, eps), 3.0);
-#endif
-#endif
 
       for (ULL i = 0; i < popsize; i++) {
         for(ULL j = 0; j < childsize; j++){
           for(ULL k = 0; k < competitors[i].size(); k++){
-#ifdef uniq
-
 #ifdef rup
             competitors[i * childsize + j].at(k) = population[i].at(k) + n_sigmas[k] * (*distribution)(generator);
 #else
             competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(generator);
-#endif//rup
-
-#else
-
-#ifdef rup
-            competitors[i * childsize + j].at(k) = population[i].at(k) + n_sigma * (*distribution)(generator);
-#else
-            competitors[i * childsize + j].at(k) = population[i].at(k) + sigma * (*distribution)(generator);
 #endif
 
-#endif
           }
         }
       }
@@ -210,8 +184,8 @@ int main() {
   srand(time(NULL));
 
   double n = 1000;
-  double t = 1.0 / sqrt(2 * n);
-  double tp = 1.0 / sqrt(2 * sqrt(n));
+  double t = 1.0 / sqrt(2 * n) * 10;
+  double tp = 1.0 / sqrt(2 * sqrt(n)) * 10;
   double eps = 1e-5;
 
   puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
