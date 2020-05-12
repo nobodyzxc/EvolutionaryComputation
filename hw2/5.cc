@@ -184,8 +184,8 @@ int main() {
   srand(time(NULL));
 
   double n = 1000;
-  double t = 1.0 / sqrt(2 * n) * 10;
-  double tp = 1.0 / sqrt(2 * sqrt(n)) * 10;
+  double t = 1.0 / sqrt(2 * n);
+  double tp = 1.0 / sqrt(2 * sqrt(n));
   double eps = 1e-5;
 
   puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
