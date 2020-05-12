@@ -44,6 +44,8 @@ template <typename FitType, typename RValVec> class ES {
       population = new RValVec[popsize];
       competitors = new RValVec[spwansize];
       sigmas = new double[RValVec::size()];
+      generator = new default_random_engine(time(NULL));
+      distribution = new normal_distribution<double>(0, 1);
     }
 
     ~ES() {
@@ -67,34 +69,23 @@ template <typename FitType, typename RValVec> class ES {
     }
 
     void recombination() {
-//#define rup
-#ifdef rup
-      double n_sigmas[RValVec::size()];
-#endif
       //double nor;
-      double nor = (*distribution)(generator);
+      double gnor = (*distribution)(*generator);
       for(auto i = 0llu; i < RValVec::size(); i++){
-        //nor = (*distribution)(generator);
-        double sig = sigmas[i] * exp(tauq * nor + tau * nor);
-        //printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigmas[i], tauq, nor, tau, nor, sig);
-#ifdef rup
-        n_sigmas[i] = max(sig, eps);
-#else
+        double lnor = (*distribution)(*generator);
+        double sig = sigmas[i] * exp(tauq * gnor + tau * lnor);
+        //if(sigmas[i] > 10)
+        //  printf("[%lld] sigma(%lf) * exp(tauq(%lf) * nor(%lf) + tau(%lf) * nor(%lf)) = %lf\n", i, sigmas[i], tauq, nor, tau, nor, sig);
+
         //sigmas[i] = min(max(sig, eps), 1.0);
-        //sigmas[i] = min(max(sig, eps), 3.0);
+        //sigmas[i] = min(max(sig, eps), 2.0);
         sigmas[i] = max(sig, eps);
-#endif
       }
 
       for (ULL i = 0; i < popsize; i++) {
         for(ULL j = 0; j < childsize; j++){
           for(ULL k = 0; k < competitors[i].size(); k++){
-#ifdef rup
-            competitors[i * childsize + j].at(k) = population[i].at(k) + n_sigmas[k] * (*distribution)(generator);
-#else
-            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(generator);
-#endif
-
+            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(*generator);
           }
         }
       }
@@ -116,8 +107,7 @@ template <typename FitType, typename RValVec> class ES {
 
       init();
 
-      if(distribution) delete distribution;
-      distribution = new normal_distribution<double>(0, 1);
+
       for (stopGen = 0; stopGen < generations; stopGen++) {
         recombination();
         for (ULL i = 0; i < spwansize; i++)
@@ -132,7 +122,7 @@ template <typename FitType, typename RValVec> class ES {
     }
 
   private:
-    std::default_random_engine generator;
+    std::default_random_engine *generator = nullptr;
     std::normal_distribution<double> *distribution = nullptr;
     FitType (*evaluate)(RValVec);
     RValVec *population, *competitors;
