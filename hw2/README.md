@@ -25,11 +25,34 @@
 
 3. (1+1)-ES and (1,1)-ES are as follows.
 
-{tab3}
+  | (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |       774 |    296540 |  10000000 |
+  | Run  #02 |       832 |    165361 |  10000000 |
+  | Run  #03 |       894 |    153576 |  10000000 |
+  | Run  #04 |       846 |      1127 |  10000000 |
+  | Run  #05 |       888 |    146614 |  10000000 |
+  | Run  #06 |       867 |     91575 |  10000000 |
+  | Run  #07 |       832 |    243447 |  10000000 |
+  | Run  #08 |       772 |    417659 |  10000000 |
+  | Run  #09 |       938 |     70853 |  10000000 |
+  | Run  #10 |       776 |     80065 |  10000000 |
+  
+  | (1,1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |  10000000 |  10000000 |  10000000 |
+  | Run  #02 |  10000000 |  10000000 |  10000000 |
+  | Run  #03 |  10000000 |  10000000 |  10000000 |
+  | Run  #04 |  10000000 |  10000000 |  10000000 |
+  | Run  #05 |  10000000 |  10000000 |  10000000 |
+  | Run  #06 |  10000000 |  10000000 |  10000000 |
+  | Run  #07 |  10000000 |  10000000 |  10000000 |
+  | Run  #08 |  10000000 |  10000000 |  10000000 |
+  | Run  #09 |  10000000 |  10000000 |  10000000 |
+  | Run  #10 |  10000000 |  10000000 |  10000000 |
 
 
 4. In the (1+1)-ES, it needs more generations to achieve convergence along with the bigger sigma. It shows the 0.01 is the most proper step size of the three. While for the (1,1)-ES, even with the 1e7 generations, it still cannot converge. Because (1,1)-ES is the random walk, it always selects the mutated child and drops the parent, survivor selection doesn't work on it. That's why (1+1)-ES may converge on proper step size, while (1,1)-ES not.
-
 
 5. The uncorrelated Gaussian mutation is as follows.
 
@@ -44,13 +67,36 @@
   |3.578|2.012| 1e-5 |
 
 
-{tab5}
+  | (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |      2096 |      2622 |      2615 |
+  | Run  #02 |      2031 |      3073 |      2120 |
+  | Run  #03 |      1702 |      3470 |      3254 |
+  | Run  #04 |      2503 |      2870 |      3217 |
+  | Run  #05 |      4214 |      2226 |      3075 |
+  | Run  #06 |      2341 |      1570 |      2239 |
+  | Run  #07 |      2673 |      2495 |      3437 |
+  | Run  #08 |      2721 |      2805 |      3313 |
+  | Run  #09 |      3789 |      4395 |      3917 |
+  | Run  #10 |      3340 |      2974 |      1823 |
+
+  | (1,1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |  10000000 |  10000000 |  10000000 |
+  | Run  #02 |  10000000 |  10000000 |  10000000 |
+  | Run  #03 |  10000000 |  10000000 |  10000000 |
+  | Run  #04 |  10000000 |  10000000 |  10000000 |
+  | Run  #05 |  10000000 |  10000000 |  10000000 |
+  | Run  #06 |  10000000 |  10000000 |  10000000 |
+  | Run  #07 |  10000000 |  10000000 |  10000000 |
+  | Run  #08 |  10000000 |  10000000 |  10000000 |
+  | Run  #09 |  10000000 |  10000000 |  10000000 |
+  | Run  #10 |  10000000 |  10000000 |  10000000 |
 
 
 6. As answer (4) mentioned, because of the improper step size (sigma), convergence becomes harder. While in the uncorrelated Gaussian mutation, the step sizes have the self-adaption ability, once it found the proper step size, the convergence will be faster, that's why it needs less generations when sigma = 0.1 or 1. But when sigma = 0.01, (3)'s generations is still less than (5). Because the step sizes continue varying, it cannot stay in the proper step size. It may be the reason why the result of (3) is better than (5), because continue using the 0.01 as step size is more proper than the varying step size.
 
   (the (1,1)-ES result remains the same because of the same reason stated in answer (4))
-
 
 7. The 1/5-rule results are as follows.
 
@@ -58,10 +104,36 @@
   |:---:|:----:|
   |  20 | 0.82 |
 
-{tab7}
+  | (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |       774 |       299 |       388 |
+  | Run  #02 |       832 |       261 |       460 |
+  | Run  #03 |       894 |       286 |       425 |
+  | Run  #04 |       846 |       267 |       412 |
+  | Run  #05 |       888 |       268 |       421 |
+  | Run  #06 |       867 |       268 |       420 |
+  | Run  #07 |       832 |       340 |       404 |
+  | Run  #08 |       772 |       306 |       428 |
+  | Run  #09 |       938 |       242 |       413 |
+  | Run  #10 |       776 |       271 |       347 |
+
+  | (1,1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |
+  |:--------:|:---------:|:---------:|:---------:|
+  | Run  #01 |  10000000 |  10000000 |  10000000 |
+  | Run  #02 |  10000000 |  10000000 |  10000000 |
+  | Run  #03 |  10000000 |  10000000 |  10000000 |
+  | Run  #04 |  10000000 |  10000000 |  10000000 |
+  | Run  #05 |  10000000 |  10000000 |  10000000 |
+  | Run  #06 |  10000000 |  10000000 |  10000000 |
+  | Run  #07 |  10000000 |  10000000 |  10000000 |
+  | Run  #08 |  10000000 |  10000000 |  10000000 |
+  | Run  #09 |  10000000 |  10000000 |  10000000 |
+  | Run  #10 |  10000000 |  10000000 |  10000000 |
+
 
 8. 1/5-rule has better self-adaption ability than my uncorrelated implementation. I printed the step sizes of each generation of uncorrelated implementation, I found it varying like a wave, the value continue changing between two boundary. While for the 1/5-rule, in the sigma = 0.01 test, the step size remains the same in all generation, and for the other two test (sigma = 0.1 and 1), the sigma change to 0.02 and 0.04 in the last generation, both of them seems like to converge toward to 0.01. Because 1/5-rule makes the step size converge to a proper size, so it needs less generations than uncorrelated implementation.
 
   For the performance in the test sigma = 0.01, the 1/5-rule is as good as constant sigma implementation. But the more interesting thing is that the performances of other two test is better than all previous test in the 1/5-rule. It may caused by the initial step size set in the two test. Because the initial step size is large enough, it accelerated the convergence, while the target is approaching, it reduced the step size continuously to prevent exceeding the target. The whole process reduces the generations they needed successfully. (sigma = 1 may be too large as the initial step size, so the result is bad than 0.1)
 
   (the (1,1)-ES result remains the same because of the same reason stated in answer (4))
+

@@ -62,7 +62,6 @@ template <typename FitType, typename RValVec> class ES {
       ULL i = 0, select_mut = 0;
       for (auto idx: sort_indexes(fitness, spwansize)) {
         if(i >= popsize) break;
-        //printf("idx = %lu\n", idx);
         if(idx < popsize * childsize) select_mut++;
         population[i++].copy(competitors[idx]);
       }
@@ -74,38 +73,19 @@ template <typename FitType, typename RValVec> class ES {
 
       if(Gacc >= G){
         double frac = double(Gs) / double(Gacc);
-        //printf("%lld / %lld = %lf\n", Gs, Gacc, frac);
         Gs = Gacc = 0;
-//#define uniq
-#ifdef uniq
-        if(frac > 0.2)
-          for(auto i = 0llu; i < RValVec::size(); i++)
-            sigmas[i] = sigmas[i] / alpha;
-        else if(frac < 0.2)
-          for(auto i = 0llu; i < RValVec::size(); i++)
-            sigmas[i] = sigmas[i] * alpha;
-#else
         if(frac > 9.2){
           sigma = sigma / alpha;
         }
         else if(frac < 0.2){
           sigma = sigma * alpha;
         }
-        //printf("frac = %lf, sigma = %lf\n", frac, sigma);
-#endif
       }
 
       for (ULL i = 0; i < popsize; i++) {
         for(ULL j = 0; j < childsize; j++){
           for(ULL k = 0; k < competitors[i].size(); k++){
-#ifdef uniq
-
-            competitors[i * childsize + j].at(k) = population[i].at(k) + sigmas[k] * (*distribution)(generator);
-#else
-
             competitors[i * childsize + j].at(k) = population[i].at(k) + sigma * (*distribution)(generator);
-
-#endif
           }
         }
       }
@@ -192,17 +172,12 @@ template <typename RVV> double NDsphere(RVV vec) {
   return acc;
 }
 
-template <typename RVV>
-void log_king(int gidx, int gtot, int score, RVV expr) {
-  printf("%d%c", score, gidx == gtot - 1 ? '\n' : ',');
-}
-
 #define RepType fixedRealVector<10>
 int main() {
   srand(time(NULL));
 
-  puts("| (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
-  puts("|:--------:|:---------:|:---------:|:---------:|");
+  puts("  | (1+1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
+  puts("  |:--------:|:---------:|:---------:|:---------:|");
 
   int G = 20;
   double alpha = 0.82; /* [0.817, 1] [0.85, 1) */
@@ -210,10 +185,22 @@ int main() {
   ES<double, RepType> es_cov_b(1, '+', 1, NDsphere, 0.1, G, alpha);
   ES<double, RepType> es_cov_c(1, '+', 1, NDsphere, 1, G, alpha);
   for(int rounds = 0; rounds < 10; rounds++, puts("")){
-    printf("| Run  #%02d |", rounds + 1), fflush(stdout);
+    printf("  | Run  #%02d |", rounds + 1), fflush(stdout);
     es_cov_a.run(1e7, 0.005), printf(" %9llu |", es_cov_a.stopGen), fflush(stdout);
     es_cov_b.run(1e7, 0.005), printf(" %9llu |", es_cov_b.stopGen), fflush(stdout);
     es_cov_c.run(1e7, 0.005), printf(" %9llu |", es_cov_c.stopGen), fflush(stdout);
+  }
+  puts("");
+  ES<double, RepType> es_ran_a(1, ',', 1, NDsphere, 0.01, G, alpha);
+  ES<double, RepType> es_ran_b(1, ',', 1, NDsphere, 0.1, G, alpha);
+  ES<double, RepType> es_ran_c(1, ',', 1, NDsphere, 1, G, alpha);
+  puts("  | (1,1)-ES | σ = 0.010 | σ = 0.100 | σ = 1.000 |");
+  puts("  |:--------:|:---------:|:---------:|:---------:|");
+  for(int rounds = 0; rounds < 10; rounds++, puts("")){
+    printf("  | Run  #%02d |", rounds + 1), fflush(stdout);
+    es_ran_a.run(1e7, 0.005), printf(" %9llu |", es_ran_a.stopGen), fflush(stdout);
+    es_ran_b.run(1e7, 0.005), printf(" %9llu |", es_ran_b.stopGen), fflush(stdout);
+    es_ran_c.run(1e7, 0.005), printf(" %9llu |", es_ran_c.stopGen), fflush(stdout);
   }
   return 0;
 }
